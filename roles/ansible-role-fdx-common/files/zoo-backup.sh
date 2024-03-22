@@ -31,7 +31,7 @@ function upload_azure() {
 
   export AZURE_STORAGE_ACCOUNT="zookeeperbackupu12wqosa"
   export AZURE_CONTAINER_NAME="zoobackup/${FILEENV}"
-  export AZURE_ACCESS_KEY="RihqiCH+rcA+k29p1c9ohRqb+uFepm0x4omMeqYZJz5DruHvXYr/WGYTC+Fh9TkHF187Uj351Lh/+AStvH/c5Q=="
+  export AZURE_ACCESS_KEY="xxx"
 
   authorization="SharedKey"
 
