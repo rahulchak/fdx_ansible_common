@@ -72,6 +72,6 @@ x_ms_blob_type_h="x-ms-blob-type:BlockBlob"
 
 export STORAGE_ACCOUNT="zookeeperbackupu12wqosa"
 export STORAGE_CONTAINER="zoobackup/${FILEENV}"
-export STORAGE_KEY="RihqiCH+rcA+k29p1c9ohRqb+uFepm0x4omMeqYZJz5DruHvXYr/WGYTC+Fh9TkHF187Uj351Lh/+AStvH/c5Q=="
+export STORAGE_KEY="xxx"
 
 downloadfile
