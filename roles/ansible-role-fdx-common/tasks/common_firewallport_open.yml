@@ -1,0 +1,8 @@
+---
+- name: opening port
+  firewalld:
+    port: "{{ item }}"
+    permanent: true
+    immediate: yes
+    state: enabled
+  loop: "{{ main_item.firewall_ports }}"

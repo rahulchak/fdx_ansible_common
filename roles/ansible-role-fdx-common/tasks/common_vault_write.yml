@@ -1,0 +1,16 @@
+- name: Install hvac python package, required for vault write
+  ansible.builtin.pip:
+    name: hvac
+
+- name: Perform write operation against vault
+  community.hashi_vault.vault_write:
+    url:  "{{ main_item.url }}"
+    path: "{{ main_item.key_path }}"
+    validate_certs: "{{ main_item.validate_certs }}" 
+    ca_cert: "{{ main_item.ca_cert }}"
+    data: { "{{ main_item.key_name }}" : "{{ main_item.key_value }}" } 
+  register: result
+
+- name: Display the result of the write (this can be empty)
+  ansible.builtin.debug:
+    msg: "Result of writing to vault: {{ result.data }}"

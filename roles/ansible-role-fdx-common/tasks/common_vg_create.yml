@@ -1,0 +1,55 @@
+---
+- name: debug
+  debug: 
+    msg: "{{ main_item.vg_name }} and {{ main_item.vg_devs }}"
+    
+- name: Ensure mandatory variables are defined
+  fail:
+    msg: "{{ item }} is undefined"
+  when: item is undefined or item | length == 0
+  with_items:
+    - main_item.vg_devs
+    - main_item.vg_name
+
+- name: ensure each device exists
+  shell: "lsblk -p | grep {{ item }}"
+  register: lsblk_check
+  changed_when: false
+  check_mode: no
+  loop: "{{ main_item.vg_devs }}"
+
+- name: "check if vg {{ main_item.vg_name }} already exists"
+  shell: "vgs {{ main_item.vg_name }}"
+  register: vg_exists
+  failed_when: false
+  changed_when: false
+  check_mode: no
+
+- name: "ensure that {{ main_item.vg_devs.0 }} is not already in use"
+  shell: "blkid | grep {{ main_item.vg_devs.0 }}"
+  register: dev_blkid
+  failed_when: false
+  changed_when: false
+  check_mode: no
+
+- name: "check if {{ main_item.vg_devs.0 }} is already in {{ main_item.vg_name }}"
+  shell: "pvs | grep {{ main_item.vg_devs.0 }}"
+  register: dev_pvs
+  failed_when: false
+  changed_when: false
+  check_mode: no
+
+- name: "fail if {{ main_item.vg_devs.0 }} is in use and not in {{ main_item.vg_name }}. If this is unexpected, you can remove fs signatures with: wipefs --all --force {{ vg_devs.0 }}"
+  fail:
+    msg: "{{ main_item.vg_devs.0 }} is already in use and not in {{ main_item.vg_name }}"
+  when: dev_blkid.rc == 0 and dev_pvs.rc == 1
+
+- name: "create {{ main_item.vg_name }}"
+  shell: pvcreate {{ main_item.vg_devs.0 }} && vgcreate {{ main_item.vg_name }} {{ main_item.vg_devs.0 }}
+  changed_when: true
+  check_mode: no
+  when: vg_exists.rc != 0 and dev_blkid.rc == 1 and dev_pvs.rc == 1
+
+- name: "add each device to {{ main_item.vg_name }}"
+  include_tasks: sub_add_dev_to_vg.yml
+  loop: "{{ main_item.vg_devs }}"

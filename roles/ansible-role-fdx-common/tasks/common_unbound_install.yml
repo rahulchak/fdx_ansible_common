@@ -1,0 +1,41 @@
+--- 
+- name: Install unbound and bind-utils
+  yum:
+    name: 
+      - unbound
+      - bind-utils
+    state: present
+
+- name: Template out /etc/unbound/unbound.conf
+  template:
+    src: unbound.conf
+    dest: /etc/unbound/unbound.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - Reload unbound
+
+- name: Template out unbound.service
+  template:
+    src: unbound.service
+    dest: /etc/systemd/system/unbound.service
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - reload systemctl
+
+- name: Start and enable unbound
+  service:
+    name: unbound
+    state: started
+    enabled: yes
+
+- name: Update /etc/resolv.conf
+  template:
+    src: resolv.conf
+    dest: /etc/resolv.conf
+    owner: root
+    group: root
+    mode: 644

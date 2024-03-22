@@ -1,0 +1,5 @@
+- name: Save string to file
+  copy:
+    content: "{{ item.string }}"
+    dest: "{{ item.dest }}"
+  with_items: "{{ main_item.strings }}"

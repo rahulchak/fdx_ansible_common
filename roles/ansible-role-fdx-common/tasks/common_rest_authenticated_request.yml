@@ -1,0 +1,35 @@
+---
+- name: REST with Basic Credentials
+  ansible.builtin.uri:
+    url: "{{ item.url }}"
+    user: "{{ item.user }}"
+    password: "{{ item.password }}"
+    method: "{{ item.method | default('GET') }}"
+    body: "{{ item.body | default('') }}"
+    force_basic_auth: yes
+    status_code: "{{ item.status_code | default('200') }}"
+    body_format: "{{ item.body_format | default('json') }}"
+    validate_certs: "{{ item.validate_certs | default('true') }}"
+  register: response_authenticated
+  with_items: "{{ main_item.requests }}"
+  no_log: "{{ mask_sensitive_logs | default('true') }}"
+  when: 
+    - item.src is not defined
+    
+- name: REST with Basic Credentials with local file
+  ansible.builtin.uri:
+    url: "{{ item.url }}"
+    user: "{{ item.user }}"
+    password: "{{ item.password }}"
+    method: "{{ item.method | default('GET') }}"
+    src: "{{ item.src }}"
+    remote_src: "{{ item.remote_src | default('false') }}"
+    force_basic_auth: yes
+    status_code: "{{ item.status_code | default('200') }}"
+    body_format: "{{ item.body_format | default('json') }}"
+    validate_certs: "{{ item.validate_certs | default('true') }}"
+  register: response_authenticated
+  with_items: "{{ main_item.requests }}"
+  no_log: "{{ mask_sensitive_logs | default('true') }}"
+  when: 
+    - item.src is defined

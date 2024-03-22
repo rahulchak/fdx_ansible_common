@@ -1,0 +1,25 @@
+---
+- hosts: all
+  gather_facts: no
+  become: yes
+  become_method: sudo
+  vars:
+    common_object: firewallservice
+    common_operation: add
+    firewall_services:
+      - shortname: 'zookeeper'
+        description: 'apache zookeeper'
+        ports:
+          - protocol: 'tcp'
+            port: 2181
+          - protocl: 'tcp'
+            port: 2888
+          - protocol: 'tcp'
+            port: 3888
+          
+  tasks:
+    - debug:
+        msg: "{{ item.shortname }}"
+      with_items: "{{ firewall_services }}"
+
+    - include_tasks: ../tasks/main.yml

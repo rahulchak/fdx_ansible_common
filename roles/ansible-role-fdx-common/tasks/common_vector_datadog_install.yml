@@ -1,0 +1,94 @@
+---
+- name: Ensure mandatory variables are defined
+  fail:
+    msg: "{{ item }} is undefined"
+  when: item is undefined or item | length == 0
+  with_items:
+    - main_item.files
+    - main_item.api_key
+
+- name: Add yum repository for Timber-Vector
+  yum_repository:
+    name: Timber_Vector
+    baseurl: https://repositories.timber.io/public/vector/rpm/el/7/$basearch
+    gpgcheck: true
+    gpgkey: https://repositories.timber.io/public/vector/gpg.3543DB2D0A2BC4B8.key
+    description: Timber Vector Repo
+    enabled: true
+
+- name: Add yum repository for Timber-Vector-Noarch
+  yum_repository:
+    name: Timber_Vector_Noarch
+    baseurl: https://repositories.timber.io/public/vector/rpm/el/7/noarch
+    gpgcheck: true
+    gpgkey: https://repositories.timber.io/public/vector/gpg.3543DB2D0A2BC4B8.key
+    description: Timber Vector Noarch Repo
+    enabled: true
+
+- name: Add yum repository for Timber-Vector-Source
+  yum_repository:
+    name: Timber_Vector_Source
+    baseurl: https://repositories.timber.io/public/vector/rpm/el/7/SRPMS
+    gpgcheck: true
+    gpgkey: https://repositories.timber.io/public/vector/gpg.3543DB2D0A2BC4B8.key
+    description: Timber Vector Source Repo
+    enabled: true
+
+- name: Create directory for Vector if it does not exist
+  file:
+    path: "/etc/vector"
+    state: directory
+    mode: '0755'
+    owner: vector
+    group: vector
+
+- name: Create directory for Vector if it does not exist
+  file:
+    path: "/var/lib/vector"
+    state: directory
+    mode: '0755'
+    owner: vector
+    group: vector
+
+- name: Create directory for Vector if it does not exist
+  file:
+    path: "/var/lib/vector/log_source"
+    state: directory
+    mode: '0755'
+    owner: vector
+    group: vector
+
+- name: Configure Vector
+  template:
+    src: dds-vector-datadog.yaml
+    dest: /etc/vector/vector.yaml
+    mode: 0644
+
+- name: Install Vector package
+  package:
+    name: vector-0.22.4
+    state: present
+    update_cache: true
+
+- name: Delete auto-created Vector Service
+  file:
+    path: /usr/lib/systemd/system/vector.service
+    state: absent
+
+- name: Configure Vector Service
+  template:
+    src: dds-vector-datadog.service
+    dest: /etc/systemd/system/vector.service
+    mode: 0664
+
+- name: Reload SystemD
+  systemd:
+    daemon_reload: yes
+  become: true
+
+- name: Restart Vector Service
+  service:
+    name: vector
+    enabled: true
+    state: restarted
+  become: true

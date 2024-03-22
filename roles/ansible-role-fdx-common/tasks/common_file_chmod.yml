@@ -1,0 +1,7 @@
+- name: Set file permissions
+  file:
+    path: "{{ item.path }}"
+    mode: "{{ item.mode | default('0644') }}"
+    owner: "{{ item.owner }}"
+    group: "{{ item.group }}"
+  with_items: "{{ main_item.files }}"

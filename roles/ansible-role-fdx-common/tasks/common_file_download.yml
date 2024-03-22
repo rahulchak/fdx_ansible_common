@@ -1,0 +1,10 @@
+- name: "Download {{ item.url }}"
+  get_url:
+    url: "{{ item.url }}"
+    dest: "{{ item.path }}"
+    mode: 0755
+  with_items: "{{ main_item.files }}"
+  register: prometheus_download_result
+  until: prometheus_download_result is success
+  retries: 10
+  delay: 5

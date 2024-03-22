@@ -1,0 +1,26 @@
+---
+- hosts: all
+  become: yes
+  become_method: sudo
+  vars:
+    common_object: disk
+    common_operation: format_mount
+    devices:
+      - name: '/dev/sdc'
+        mount_point: '/data0'
+        fstype: 'xfs'
+        owner: 'root'
+        group: 'root'
+      - name: /dev/sdd 
+        mount_point: '/data1'
+        fstype: 'xfs'
+        owner: 'root'
+        group: 'root'
+
+  tasks:
+    - debug:
+        msg: "{{ item.name }}"
+      with_items: "{{ devices }}"
+
+    - include_tasks: ../tasks/main.yml
+      

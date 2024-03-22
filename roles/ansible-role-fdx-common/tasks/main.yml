@@ -1,0 +1,6 @@
+---
+- include_tasks: "common_{{ main_item.common_object }}_{{ main_item.common_operation }}.yml"
+  when: main_item.common_object is defined and main_item.common_operation is defined
+  loop: "{{ common_tasks }}"
+  loop_control:
+    loop_var: main_item

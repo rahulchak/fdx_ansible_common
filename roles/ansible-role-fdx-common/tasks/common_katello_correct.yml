@@ -1,0 +1,41 @@
+- name: check if katello version is incorrect
+  shell: "rpm -qa | grep -c -e {{ katello_version.ebdc }} -e {{ katello_version.ordc }}"
+  register: katello_rpm_check
+  failed_when: false
+  changed_when: false
+  check_mode: no
+  args:
+    warn: false
+
+- name: get currently installed katello-ca-consumer
+  shell: rpm -qa | grep katello-ca-consumer
+  register: katello_currently_installed
+  failed_when: false
+  changed_when: false
+  check_mode: no
+  when: katello_rpm_check.stdout == "0"
+  args:
+    warn: false
+
+- name: get location of server
+  set_fact:
+    server_dc: "{{ inventory_hostname[3:4] }}"
+  when: katello_rpm_check.stdout == "0"
+
+- name: remove old katello-ca-consumer rpm
+  yum:
+    name: "{{ katello_currently_installed.stdout }}"
+    state: absent
+  when: katello_rpm_check.stdout == "0" and katello_currently_installed.stdout != ""
+
+- name: install ebdc katello-ca-consumer package
+  yum: 
+    name: http://lin2pr2rs1c2.chrobinson.com/pub/katello-ca-consumer-latest.noarch.rpm
+    state: present
+  when: katello_rpm_check.stdout == "0" and server_dc == "2"
+
+- name: install ordc katello-ca-consumer package
+  yum: 
+    name: http://lin1pr2rs1c1.chrobinson.com/pub/katello-ca-consumer-latest.noarch.rpm
+    state: present
+  when: katello_rpm_check.stdout == "0" and server_dc == "1"

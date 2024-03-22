@@ -1,0 +1,64 @@
+[SERVICE]
+    Daemon Off
+    Flush 1
+    Log_Level info
+    HTTP_Server On
+    HTTP_Listen 0.0.0.0
+    HTTP_Port 2020
+    Health_Check On
+    Log_Level info
+    storage.path /var/log/flb-storage/
+    storage.sync normal
+    storage.checksum off
+    storage.backlog.mem_limit 50M
+    parsers_file /etc/td-agent-bit/parsers_multiline.conf
+
+## https://docs.fluentbit.io/manual/pipeline/inputs
+[INPUT]
+    Name tail
+    Path {{ main_item.file }}
+    Mem_Buf_Limit 5MB
+    Skip_Long_Lines On
+    DB /var/log/fluentbit.db
+    Read_from_Head true
+    Refresh_Interval 10
+    Skip_Empty_Lines true
+    storage.type filesystem
+
+## https://docs.fluentbit.io/manual/pipeline/filters
+[FILTER]
+    Name modify
+    Match *
+    Add chrobinson_meta_kafka_cluster {{ main_item.env }}
+
+    Name modify
+    Match *
+    Add source ${HOSTNAME}
+
+    Name modify
+    Match *
+    Add chrobinson_meta_technology {{ main_item.tech }}
+
+[FILTER]
+    Name         grep
+    Match        *
+    Exclude      log /.*WARN Negative message latency.*/
+
+[FILTER]
+    name                  multiline
+    match                 *
+    multiline.key_content log
+    multiline.parser      multiline-regex-test
+
+## https://docs.fluentbit.io/manual/pipeline/outputs
+[OUTPUT]
+    Name kafka
+    timestamp_format iso8601
+    Match *
+    Brokers {{ main_item.brokers }}
+    Topics {{ main_item.topic }}
+    rdkafka.sasl.username {{ main_item.username }}
+    rdkafka.sasl.password {{ main_item.password }}
+    rdkafka.sasl.mechanism {{ main_item.sasl_mechanism }}
+    rdkafka.security.protocol {{ main_item.security_protocol }}
+    rdkafka.compression.codec {{ main_item.compression_codec }}

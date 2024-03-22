@@ -1,0 +1,112 @@
+---
+- name: create temp dir for certs
+  tempfile:
+    state: directory
+    prefix: ca_certs
+  register: tempdir_1
+
+- name: delete trustore and keystore
+  file:
+    state: absent
+    path: "{{ item }}"
+  loop:
+    - "{{ main_item.truststore_path }}"
+    - "{{ main_item.keystore_path }}"
+  when: "{{ main_item.delete_keystore_and_truststore }}"
+
+- name: Create Truststore and Import the CA Cert
+  shell: |
+    keytool -noprompt -keystore {{ main_item.truststore_path }} \
+      -storetype pkcs12 \
+      -alias CARoot \
+      -import -file {{ main_item.ssl_ca_cert_filepath }} \
+      -storepass {{ main_item.truststore_storepass }} \
+      -keypass {{ main_item.truststore_storepass }}
+
+- name: Put Key and Signed Cert into pkcs12 Format
+  shell: |
+    openssl pkcs12 -export \
+      -in {{ main_item.signed_cert_path }} \
+      -inkey {{ main_item.signed_cert_private_key_path }}\
+      -out {{ tempdir_1.path }}/client.p12 \
+      -name kafkassl \
+      -passout pass:mykeypassword
+  when: not ansible_check_mode
+  
+- name: Create Keystore
+  shell: |
+    keytool -importkeystore \
+      -srckeystore {{ tempdir_1.path }}/client.p12 \
+      -srcstoretype pkcs12 \
+      -srcstorepass mykeypassword \
+      -destkeystore {{ main_item.keystore_path }} \
+      -deststoretype pkcs12 \
+      -deststorepass {{ main_item.keystore_storepass }} \
+      -destkeypass {{ main_item.keystore_storepass }} 
+  when: not ansible_check_mode
+  
+- name: Import the CA Cert into Keystore
+  shell: |
+    keytool -noprompt -keystore {{ main_item.keystore_path }} \
+      -storetype pkcs12 \
+      -keyalg RSA \
+      -alias CARoot \
+      -import -file {{ main_item.ssl_ca_cert_filepath }} \
+      -storepass {{ main_item.keystore_storepass }} \
+      -keypass {{ main_item.keystore_storepass }} 
+
+#the following tasks add each individual certificate from the CA chain into the truststore.
+#this is necesseary to make TLS to on-prem work
+
+- name: remove empty lines from CA chain
+  shell: |
+     sed -i '/^\s*$/d' /etc/consul/pki/ca-chain.crt
+- name: split CA chain into separate file
+  shell: |
+   sed -i '/^\s*$/d' /etc/consul/pki/ca-chain.crt
+   c=0
+   while read line
+     do
+       if echo $line | grep END; then
+       echo $line >> {{tempdir_1.path}}/ca$c.pem
+       c=`expr $c + 1`
+       else
+        echo $line >> {{tempdir_1.path}}/ca$c.pem
+       fi
+   done < /etc/consul/pki/ca-chain.crt
+  when: not ansible_check_mode
+
+- name: get cert paths
+  find:
+    paths: "{{tempdir_1.path}}"
+    patterns: "ca*.pem"
+  register: certs
+  when: not ansible_check_mode
+
+- name: add ca certs to truststore
+  shell: |
+    keytool -import \
+    -alias {{item.path|basename}} \
+    -file {{item.path}} \
+    -keystore {{ main_item.truststore_path }} \
+    -storepass {{ main_item.truststore_storepass }} \
+    -noprompt
+  with_items: "{{ certs.files }}"
+  when: not ansible_check_mode
+
+- name: set permissions
+  file:
+    state: file
+    path: "{{ item }}"
+    owner: "{{ main_item.user | default('root') }}"
+    group: "{{ main_item.group | default('root') }}"
+    mode: 0400
+  loop: 
+    - "{{ main_item.truststore_path  }}"
+    - "{{ main_item.keystore_path  }}"
+    
+- name: cleanup tempdir
+  file:
+    path: "{{ tempdir_1.path }}"
+    state: absent
+  when: not ansible_check_mode

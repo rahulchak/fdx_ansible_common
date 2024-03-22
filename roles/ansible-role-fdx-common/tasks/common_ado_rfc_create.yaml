@@ -1,0 +1,31 @@
+---
+- name: Ensure mandatory variables are defined
+  fail:
+    msg: "{{ item }} is undefined"
+  when: item is undefined or item | length == 0
+  with_items:
+    - main_item.environment
+    
+- name: set facts
+  set_fact:
+    commit_id: "{{ lookup('env','BUILD_SOURCEVERSION') }}"
+    github_url: "{{ lookup('env','BUILD_REPOSITORY_URI') | regex_replace('\\.git$') }}"
+    product: "{{ lookup('env','BUILD_REPOSITORY_NAME') }}"
+    branch: "{{ lookup('env','BUILD_SOURCEBRANCHNAME') }}"
+
+- name: POST RFC Creation
+  uri:
+    url: http://ittools.chrobinson.com/api/devops/machine/v1/events/cdcomplete
+    method: POST
+    body:
+      ParentID: "{{ 1000000000 | random | to_uuid }}"
+      CDInfo:
+        Environment: "{{ main_item.environment }}"
+        Product: "{{ main_item.product }}"
+        ProductGroup: CloudTechnologies
+        Version: "{{ main_item.commit_id }}"
+        ReleaseLink: "{{ github_url + '/commit/' + main_item.commit_id }}"
+        ChangeAudit:
+          Template: "CloudTechnologies - {{ main_item.product }}"
+          ProductURI: "{{ main_item.github_url }}"
+    body_format: json

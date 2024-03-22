@@ -1,0 +1,4 @@
+---
+- name: WaitForTask
+  ansible.builtin.pause:
+    seconds: "{{ main_item.wait_sec | int }}"

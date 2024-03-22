@@ -1,0 +1,50 @@
+--- 
+- name: Install filebeat
+  yum:
+    name: 
+      - filebeat
+    state: present
+
+- name: create necessary folders
+  file:
+    state: directory
+    path: "{{ item }}"
+    owner: root
+    group: root
+  loop:
+    - /var/log/filebeat-kafka
+    - /var/lib/filebeat-kafka
+
+- name: Get docker root dir
+  shell: docker info | grep Root | awk '{print $NF}'
+  register: docker_dir
+  changed_when: false
+  failed_when: docker_dir.rc != 0
+
+- name: Template out /etc/filebeat/filebeat-kafka.yml
+  template:
+    src: filebeat-kafka.yml
+    dest: /etc/filebeat/filebeat-kafka.yml
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - restart filebeat-kafka
+
+- name: Template out filebeat-kafka.service
+  template:
+    src: filebeat-kafka.service
+    dest: /etc/systemd/system/filebeat-kafka.service
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - restart filebeat-kafka
+
+- meta: flush_handlers
+
+- name: Start and enable filebeat-kafka
+  service:
+    name: filebeat-kafka
+    state: started
+    enabled: yes

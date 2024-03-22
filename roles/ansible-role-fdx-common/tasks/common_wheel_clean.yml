@@ -1,0 +1,13 @@
+--- 
+- name: get list of users in wheel group
+  shell: "grep ^wheel /etc/group | awk -F: '{print $NF}' | tr ',' '\n' | grep -v {{ wheel_group_exceptions }}"
+  register: wheel_group_users
+  changed_when: false
+  failed_when: false
+
+
+- name: remove excess users from wheel group
+  shell: "gpasswd -d {{ item }} wheel"
+  register: remove_users
+  with_items: "{{ wheel_group_users.stdout_lines }}"
+  when: wheel_group_users.stdout != ""

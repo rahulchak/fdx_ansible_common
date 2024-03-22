@@ -1,0 +1,13 @@
+- name: update cron entries
+  cron:
+    backup: "{{ item.backup | default('no') }}"
+    name: "{{ item.name }}"
+    weekday: "{{ item.weekday | default('*') }}"
+    day: "{{ item.day | default('*') }}"
+    month: "{{ item.month | default('*') }}"
+    minute: "{{ item.minute | default('*') }}"
+    hour: "{{ item.hour | default('*') }}"
+    user: "{{ item.user | default('root') }}"
+    job: "{{ item.job }}"
+    state: "{{ item.state }}"
+  with_items: "{{ main_item.config }}"

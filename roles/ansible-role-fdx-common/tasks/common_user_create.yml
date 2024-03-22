@@ -1,0 +1,28 @@
+- name: Create group
+  group:
+    name: "{{ main_item.group }}"
+    state: present
+  when: main_item.group is defined
+
+- name: Create groups
+  group:
+    name: "{{ item }}"
+    state: present
+  when: main_item.groups is defined
+  loop: "{{ main_item.groups }}"
+
+- name: Create user with primary group
+  user:
+    name: "{{ main_item.username }}"
+    state: present
+    group: "{{ main_item.group | default('') }}"
+    append: true
+  when: main_item.group is defined
+  
+- name: Create user with additional groups
+  user:
+    name: "{{ main_item.username }}"
+    state: present
+    groups: "{{ main_item.groups | default('') }}"
+    append: true
+  when: main_item.groups is defined

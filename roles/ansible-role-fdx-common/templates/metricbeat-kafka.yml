@@ -1,0 +1,92 @@
+metricbeat.config.modules:
+  path: ${path.config}/modules.d/*.yml
+  reload.enabled: false
+
+metricbeat.modules:
+- module: system
+  period: 15s
+  metricsets:
+    - cpu
+    - load
+    - memory
+    - network
+    - process
+    - process_summary
+    - socket_summary
+    - entropy
+    - core
+    - diskio
+    - socket
+  process.include_top_n:
+    by_cpu: 5      # include top 5 processes by CPU
+    by_memory: 5   # include top 5 processes by memory
+
+- module: system
+  period: 1m
+  metricsets:
+    - filesystem
+    - fsstat
+    - service
+  processors:
+  - drop_event.when.regexp:
+      system.filesystem.mount_point: '^/(sys|cgroup|proc|dev|etc|host|lib)($|/)'
+
+- module: system
+  period: 15m
+  metricsets:
+    - uptime
+
+metricbeat.modules:
+- module: docker
+  metricsets: ["container", "cpu", "diskio", "healthcheck", "info", "memory", "network"]
+  hosts: ["unix:///var/run/docker.sock"]
+  period: 15s
+
+#metricbeat.autodiscover:
+#      providers:
+#        - type: kubernetes
+#          scope: cluster
+#          node: ${NODE_NAME}
+#          unique: true
+#          templates:
+#            - config:
+#                - module: kubernetes
+#                  hosts: ["kube-state-metrics:8080"]
+#                  period: 10s
+#                  add_metadata: true
+#                  metricsets:
+#                    - state_node
+#                    - state_deployment
+#                    - state_daemonset
+#                    - state_replicaset
+#                    - state_pod
+#                    - state_container
+#                    - state_cronjob
+#                    - state_resourcequota
+#                    - state_statefulset
+#                - module: kubernetes
+#                  metricsets:
+#                    - apiserver
+#                  hosts: ["https://${KUBERNETES_SERVICE_HOST}:${KUBERNETES_SERVICE_PORT}"]
+#                  bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+#                  ssl.certificate_authorities:
+#                    - /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+#                  period: 30s
+#                # Uncomment this to get k8s events:
+#                - module: kubernetes
+#                  metricsets:
+#                    - event
+#        # To enable hints based autodiscover uncomment this:
+#        - type: kubernetes
+#          node: ${NODE_NAME}
+#          hints.enabled: true
+
+
+output.kafka:
+  enabled: true
+  hosts: {{ metricbeat_kafka_cluster }}
+  topic: "{{ metricbeat_kafka_topic }}"
+  channel_buffer_size: 256
+  ssl.enabled: false
+  compression: gzip
+  max_message_bytes: 1000000

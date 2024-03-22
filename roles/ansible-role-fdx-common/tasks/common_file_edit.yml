@@ -1,0 +1,14 @@
+- name: Check to see if file exists
+  stat:
+    path: "{{ item.file }}"
+  register: stat_results
+  with_items: "{{ main_item.files_to_edit }}"
+  ignore_errors: True
+- name: replace line
+  lineinfile: 
+    path: "{{ item.item.file }}" 
+    regexp: "{{ item.item.search_pattern_regexp }}"
+    line: "{{ item.item.replace_string }}"
+    backrefs: yes
+  with_items: "{{ stat_results.results }}" 
+  when: item.stat.exists == True 

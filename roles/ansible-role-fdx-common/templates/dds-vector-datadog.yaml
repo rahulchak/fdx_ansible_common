@@ -1,0 +1,41 @@
+sources:
+  log_source:
+    type: file
+    include: {{ main_item.files }}
+    read_from: end
+    max_line_bytes: 1000000
+    max_read_bytes: 10000000
+{% if "multiline" in main_item %}
+    multiline:
+{% for key, value in main_item.multiline.items() %}
+{% if key in ["mode", "condition_pattern", "start_pattern"] %}
+      {{ key }}: "{{ value }}"
+{% else %}
+      {{ key }}: {{ value }}
+{% endif %}
+{% endfor %}
+{% endif %}
+{% if "extra_tags" in main_item %}
+transforms:
+  tags_transform:
+    type: remap
+    inputs:
+    - log_source
+    source: |-
+{% for tag_name, tag_value in main_item.extra_tags.items() %}
+      .{{ tag_name }} = "{{ tag_value }}"
+{% endfor %}
+{% endif %}
+sinks:
+  log_sink:
+    type: datadog_logs
+{% if "extra_tags" in main_item %}
+    inputs:
+    - tags_transform
+{% else %}
+    inputs:
+    - log_source
+{% endif %}
+    default_api_key: {{ main_item.api_key }}
+    region: us
+    site: us3.datadoghq.com

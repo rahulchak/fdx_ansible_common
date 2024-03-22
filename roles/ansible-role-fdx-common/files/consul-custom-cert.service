@@ -1,0 +1,10 @@
+Description=Hashicorp consul-custom-cert Service
+After=network-online.target
+[Service]
+Environment=HOSTNAME=%H
+User=vault
+Restart=always
+RestartSec=30
+ExecStart=/usr/bin/consul-template -config=/etc/consul/consul-custom-cert.hcl
+[Install]
+WantedBy=multi-user.target

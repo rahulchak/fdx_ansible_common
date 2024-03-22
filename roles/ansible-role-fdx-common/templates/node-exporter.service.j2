@@ -1,0 +1,12 @@
+[Unit]
+Description=Prometheus Node Exporter Process via port 9100
+After=network-online.target
+
+[Service]
+User=prometheus
+Restart=always
+RestartSec=15
+ExecStart=/usr/bin/node_exporter
+
+[Install]
+WantedBy=multi-user.target
