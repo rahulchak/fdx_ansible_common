@@ -1,11 +1,3 @@
 ---
 wheel_group_exceptions: jenkins
 
-mongodump_command: "mongodump --host \"{{ mongodump_replicaset }}/{{ mongodump_host }}\" --port {{ mongodump_port }} --username {{ mongodump_username }} --password {{ mongodump_password }} --db {{ item }} --out {{ mongodump_restore_folder }} --authenticationDatabase {{ mongodump_authdb }} --authenticationMechanism SCRAM-SHA-1 --verbose --forceTableScan  --readPreference=secondaryPreferred --numParallelCollections=1"
-
-mongorestore_command: "mongorestore --host \"{{ mongorestore_replicaset }}/{{ mongorestore_host }}\" --port {{ mongorestore_port }} --username {{ mongorestore_username }} --password {{ mongorestore_password }} --authenticationDatabase {{ mongorestore_authdb }} --authenticationMechanism SCRAM-SHA-1 --verbose --drop {{ mongorestore_restore_folder }}"
-
-# Correct katello version
-katello_version:
-  ebdc: katello-ca-consumer-lin2pr2rs1c2.chrobinson.com
-  ordc: katello-ca-consumer-lin1pr2rs1c1.chrobinson.com
