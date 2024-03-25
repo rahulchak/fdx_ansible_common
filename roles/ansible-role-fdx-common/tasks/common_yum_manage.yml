@@ -1,5 +1,0 @@
-- name: manage yum packages
-  yum:
-    name: "{{ item.name }}"
-    state: "{{ item.state }}"
-  with_items: "{{ main_item.packages }}"

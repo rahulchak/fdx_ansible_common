@@ -1,7 +1,0 @@
-- name: Manage Services
-  systemd:
-    name: "{{ item.name }}"
-    state: "{{ item.state }}"
-    enabled: "{{ item.enabled | default('false') }}"
-    masked: "{{ item.masked | default('false') }}"
-  with_items: "{{ main_item.services }}"
