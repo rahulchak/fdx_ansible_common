@@ -1,6 +1,2 @@
 ---
 # defaults file for role
-filebeat_kafka_topic: datascience-hosts-nonprod-logs
-filebeat_kafka_cluster: '["ebdc-emlog-broker1.chrobinson.com:9092", "ebdc-emlog-broker2.chrobinson.com:9092", "ebdc-emlog-broker3.chrobinson.com:9092", "ebdc-emlog-broker4.chrobinson.com:9092"]'
-metricbeat_kafka_topic: datascience-hosts-nonprod-metrics
-metricbeat_kafka_cluster: '["ebdc-emlog-broker1.chrobinson.com:9092", "ebdc-emlog-broker2.chrobinson.com:9092", "ebdc-emlog-broker3.chrobinson.com:9092", "ebdc-emlog-broker4.chrobinson.com:9092"]'
