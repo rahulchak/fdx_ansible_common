@@ -32,12 +32,3 @@
     state: restarted
   become: true
 
-- name: restart consul-chr-fqdn.service
-  service:
-    name: consul-chr-fqdn.service
-    state: restarted
-
-- name: restart consul-custom-cert.service
-  service:
-    name: consul-custom-cert.service
-    state: restarted
