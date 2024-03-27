@@ -1,7 +1,0 @@
-{% raw %}{{ with secret "pki-internal/issue/internal" {% endraw %}"common_name={{ ece_base_url }}" "ttl=6000h" "alt_names={{ hostvars[inventory_hostname].sub_alt_names }}{% raw %}"}}
-{{ .Data.private_key }}
-{{ .Data.certificate }}
-{{range .Data.ca_chain}}
-{{.}}
-{{end}}
-{{- end }}{% endraw %}

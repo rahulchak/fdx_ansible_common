@@ -1,2 +1,0 @@
-{% raw %}{{ $hostname := printf "common_name=%s" (env "HOSTNAME")  }}{{ with secret "pki-internal/issue/internal" $hostname "ttl=7000h" "alt_names={% endraw %}{{ hostvars[inventory_hostname].sub_alt_names }}{% raw %}"}}
-{{- .Data.private_key }}{{- end }}{% endraw %}
